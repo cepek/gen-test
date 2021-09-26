@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ulimit -t 300
+
+rm -f ttt*
+
+while (true)
+do
+        let i=i+1
+        echo -n "$i "
+        ./gen-test > ttt.gkf
+
+        if ! ./gama --algorithm svd ttt.gkf;
+        then
+           if ! grep min_subset_x                ttt.gkf-* &&
+              ! grep "No points available"       ttt.gkf-* &&
+              ! grep "No observations available" ttt.gkf-*;
+           then
+              echo "   " exception
+              cp ttt.gkf   test-$i.gkf
+              cp ttt.gkf-* test-$i.gkf.txt
+           fi;
+        fi
+ 
+        rm -f ttt.*
+done
+
