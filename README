@@ -1,7 +1,0 @@
-Program gen-test v. 1.0    2001-07-13    Ales Cepek <cepek@fsv.cvut.cz>
------------------------
-
-generates random XML input network data for testing of 3D local
-geodetic network adjustment. The purpose of the program is not to
-generate realistic simulations but crash test data (see ./run-tests).
-
