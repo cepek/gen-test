@@ -2,6 +2,7 @@
 #include <cmath>
 #include <random>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -10,12 +11,12 @@ mt19937 rgen(r());
 uniform_real_distribution<> rdis(0,1);
 
 const  int N_max = 100;
-int        N {};
+int        N_test {};
 
-struct XYZ { double x, y, z; };
-XYZ    Point[N_max + 1];
+struct XYZ { double x{}, y{}, z{}; };
+vector<XYZ>    Point(N_max);
 
-  string type[] = {
+vector<string> point_type = {
   " adj='xyz' ",
   " adj='xy'  ",
   " adj='z'   ",
@@ -54,7 +55,31 @@ XYZ    Point[N_max + 1];
   " fix='z' adj='XY' ",
 };
 
+struct Dh
+{
+  double from, to;
 
+  Dh()
+  {
+    from = to = 0;
+    double rf = rdis(rgen);
+    if (rf < 0.5) from = 0.75 +  rf*2;
+    double rt = rdis(rgen);
+    if (rt < 0.5) to = 0.75 +  rt*2;
+  }
+
+  double diff() { return to - from; }
+};
+
+ostream& operator<<(ostream& out, Dh dh)
+{
+  auto p = out.precision();
+  out.precision(3);
+  if (dh.from != 0) out << " from_dh='" << dh.from << "'";
+  if( dh.to   != 0) out << " to_dh='"   << dh.to   << "'";
+  out.precision(p);
+  return out;
+}
 
 using Function = void (*)(int);
 
@@ -63,23 +88,21 @@ void heights(int);
 void coordinates(int);
 void vectors(int);
 
-Function cluster[] = {observations, observations, observations,
-                      heights,      coordinates,  vectors};
-const int cluster_size = sizeof(cluster)/sizeof(Function);
+vector<Function> cluster = {observations, observations, observations,
+                            heights,      coordinates,  vectors};
 
 
-
-inline double xyz()
+double xyz()
 {
   return rdis(rgen)*1000.0;
 }
 
-inline int rand_type()
+int random_point_type_index()
 {
-  return int( rdis(rgen) * type->size());
+  return int( rdis(rgen) * point_type.size());
 }
 
-inline int index(int M) 
+int random_index(int M)
 {
   return int( rdis(rgen) * M );
 }
@@ -88,19 +111,17 @@ int target(int from)
 {
   int to;
   do {
-    to = index(N) + 1;
-  } while (from == to);
+    to = random_index(N_test);
+  } while (from == to || to == 0);
   return to;
 }
-
-
 
 void dh(int from)
 {
   int to = target(from);
   cout.precision(3);
   cout << "<dh from='" << from << "' to='" << to << "'"
-       << " val='" << Point[to].z -Point[from].z << "'"
+       << " val='" << Point[to].z - Point[from].z << "'"
        << " stdev='2.0' />\n";
 }
 
@@ -117,29 +138,22 @@ void dist(int from)
 
 void sdist(int from)
 {
-  double from_dh {0}, to_dh {0};
-  double rf = rdis(rgen);
-  if (rf < 0.5) from_dh = 0.5 +  rf*2;
-  double rt = rdis(rgen);
-  if (rt < 0.5) to_dh = 0.5 +  rt*2;
+  Dh dh;
 
   int to = target(from);
   cout.precision(2);
   double dx = Point[to].x - Point[from].x;
   double dy = Point[to].y - Point[from].y;
-  double dz = Point[to].z - Point[from].z + to_dh - from_dh;
+  double dz = Point[to].z - Point[from].z + dh.diff();
   double d  = sqrt(dx*dx + dy*dy + dz*dz);
   cout << "<s-distance from='" << from << "' to='" << to << "'"
-       << " val='" << d << "'";
-  if (from_dh != 0 || to_dh != 0)
-    cout << " from_dh='" << from_dh << "' to_dh='" << to_dh << "'";
-  cout << " stdev='5.0' />\n";
+       << " val='" << d << "'" << dh << " stdev='5.0' />\n";
 }
 
 void dir(int from)
 {
   cout.precision(4);
-  for (int i=0; i<=1+index(4); i++)
+  for (int i=0; i<=1+random_index(4); i++)
     {
       int to = target(from);
       double dx = Point[to].x - Point[from].x;
@@ -153,11 +167,7 @@ void dir(int from)
 
 void zen(int from)
 {
-  double from_dh {0}, to_dh {0};
-  double rf = rdis(rgen);
-  if (rf < 0.5) from_dh = 0.5 +  rf*2;
-  double rt = rdis(rgen);
-  if (rt < 0.5) to_dh = 0.5 +  rt*2;
+  Dh dh;
 
   int   to;
   double dx, dy, dz, s;
@@ -167,32 +177,28 @@ void zen(int from)
       cout.precision(4);
       dx = Point[to].x - Point[from].x;
       dy = Point[to].y - Point[from].y;
-      dz = Point[to].z - Point[from].z + to_dh - from_dh;
+      dz = Point[to].z - Point[from].z + dh.diff();
       s  = sqrt(dx*dx + dy*dy + dz*dz);
     }
   while(s == 0);
   double z  = acos(dz/s)/M_PI*200;
   cout << "<z-angle from='" << from << "' to='" << to << "'"
-       << " val='" << z << "'";
-  if (from_dh != 0 || to_dh != 0)
-    cout << " from_dh='" << from_dh << "' to_dh='" << to_dh << "'";
-  cout << " stdev='7.0' />\n";
+       << " val='" << z << "'" << dh << " stdev='7.0' />\n";
 }
 
-Function obs[] = {  dir, dist, sdist, zen };
-const int obs_size = sizeof(obs)/sizeof(Function);
+vector<Function> obs = {  dir, dist, sdist, zen };
 
 void observations(int from)
 {
   cout << "<obs from='" << from << "'>\n";
-  for (int i=0; i<=index(5); i++) obs[index(obs_size)](from);
+  for (int i=0; i<=random_index(5); i++) obs[random_index(obs.size())](from);
   cout << "</obs>\n\n";
 }
 
 void heights(int from)
 {
   cout << "<height-differences>\n";
-  for (int i=0; i<=index(5); i++) dh(from);
+  for (int i=0; i<=random_index(5); i++) dh(from);
   cout << "</height-differences>\n\n";
 }
 
@@ -215,10 +221,10 @@ void coordinates(int from)
 
   cout << "<coordinates>\n";
 
-  for (int i=0; i<=index(3); i++)
+  for (int i=0; i<=random_index(3); i++)
     {
       cout << "<point id='" << p[i] << "'";
-      int k = index(3);
+      int k = random_index(3);
       switch (k)
         {
         case 0:
@@ -271,7 +277,7 @@ void vectors(int from)
 
   cout << "<vectors>\n";
 
-  for (int i=0; i<=index(3); i++)
+  for (int i=0; i<=random_index(3); i++)
     {
       dim += 3;
       int to = target(p[i]);
@@ -301,10 +307,10 @@ int main(int argc, char* argv[])
   cout.setf(ios::fixed, ios::floatfield);
 
   do
-    N = index(N_max);
-  while (N < 2);
+    N_test = random_index(N_max);
+  while (N_test < 2+1);   // ignore point 0
 
-  for (int i=1; i<=N; i++)
+  for (int i=0; i<N_test; i++)
     {
       Point[i].x = xyz();
       Point[i].y = xyz();
@@ -312,8 +318,8 @@ int main(int argc, char* argv[])
     }
 
   cout << "<?xml version='1.0' ?>\n"
-       << "<!DOCTYPE gama-xml SYSTEM 'gama-xml.dtd'>\n"
-       << "<gama-xml version='2.0'>\n"
+       << "<gama-local xmlns='http://www.gnu.org/software/gama/gama-local'>\n"
+
        << "<network>\n\n"
 
        << "<description>\n"
@@ -323,23 +329,23 @@ int main(int argc, char* argv[])
        << "<points-observations>\n\n";
 
   cout.precision(2);
-  for (int i=1; i<=N; i++)
+  for (int i=1; i<N_test; i++)
     cout << "<point id='" << i << "'"
          << " x='" << Point[i].x << "'"
          << " y='" << Point[i].y << "'"
          << " z='" << Point[i].z << "'"
-         << type[rand_type()]
+         << point_type[random_point_type_index()]
          << "/>\n";
   cout << endl;
 
-  for (int i=1; i<=N; i++)
-    for (int j=1; j<=1+index(3); j++)
+  for (int i=1; i<N_test; i++)   // ignore point 0
+    for (int j=0; j<random_index(3); j++)
       {
-        cluster[index(cluster_size)](i);
+        cluster[random_index(cluster.size())](i);
       }
 
   cout << "</points-observations>\n"
        << "</network>\n"
-       << "</gama-xml>\n\n";
+       << "</gama-local>\n\n";
 }
 

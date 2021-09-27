@@ -2,7 +2,7 @@
 
 ulimit -t 3
 
-rm -f ttt*
+rm -f ttt* test-*
 
 while (true)
 do
@@ -16,12 +16,12 @@ do
 	   ! grep "No points available"       ttt-$i.gkf &&
 	   ! grep "No observations available" ttt-$i.gkf ;
         then
-            echo "   " exception
+            # echo "   " exception
             cp ttt-$i.gkf test-$i.gkf
-            cp ttt-$i.gkf test-$i.txt
+            # cp ttt-$i.txt test-$i.txt
         fi;
     fi
-    rm -f ttt*
+#    rm -f ttt*
 
     if [ $i -ge 1000 ] ;
     then
