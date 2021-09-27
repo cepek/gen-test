@@ -112,7 +112,7 @@ int target(int from)
   int to;
   do {
     to = random_index(N_test);
-  } while (from == to || to == 0);
+  } while (from == to);
   return to;
 }
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[])
 
   do
     N_test = random_index(N_max);
-  while (N_test < 2+1);   // ignore point 0
+  while (N_test < 2);
 
   for (int i=0; i<N_test; i++)
     {
@@ -329,7 +329,7 @@ int main(int argc, char* argv[])
        << "<points-observations>\n\n";
 
   cout.precision(2);
-  for (int i=1; i<N_test; i++)
+  for (int i=0; i<N_test; i++)
     cout << "<point id='" << i << "'"
          << " x='" << Point[i].x << "'"
          << " y='" << Point[i].y << "'"
@@ -338,7 +338,7 @@ int main(int argc, char* argv[])
          << "/>\n";
   cout << endl;
 
-  for (int i=1; i<N_test; i++)   // ignore point 0
+  for (int i=0; i<N_test; i++)
     for (int j=0; j<random_index(3); j++)
       {
         cluster[random_index(cluster.size())](i);
