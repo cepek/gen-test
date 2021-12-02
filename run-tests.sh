@@ -4,6 +4,11 @@ ulimit -t 3
 
 rm -f ttt* test-*
 
+if [ ! -f ./gama-local ]; then
+    echo "Symlink ./gama-local does not exists ..."
+    exit 1
+fi
+
 while (true)
 do
     let i=i+1
@@ -21,9 +26,9 @@ do
             # cp ttt-$i.txt test-$i.txt
         fi;
     fi
-#    rm -f ttt*
+#   rm -f ttt*
 
-    if [ $i -ge 1000 ] ;
+    if [ $i -ge 100 ] ;
     then
         echo
         exit 0

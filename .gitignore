@@ -1,5 +1,5 @@
 build
 gama-local
-test*
+test-* ttt-*
 CMakeLists.txt.*
 .vscode
