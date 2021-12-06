@@ -11,7 +11,7 @@ random_device r;
 mt19937 rgen(r());
 uniform_real_distribution<> rdis(0,1);
 
-//std::ostream* ostr[2] { &std::cout, &ofstr };
+std::ofstream ofstr1, ofstr2;
 std::vector<std::ostream*> output;
 
 const  int N_max = 100;
@@ -388,13 +388,51 @@ void vectors(int from)
     }
 }
 
+bool open(int argc, char* argv[])
+{
+  for (int i=1; i<argc; i++)
+    {
+      std::string h(argv[i]);
+      if (h == "-h"    || h == "--h"    ||
+          h == "-help" || h == "--help" || argc > 3)
+        {
+          std::cerr << "\ngen-test [ file1 | - [ file2 | - ]]\n\n";
+          return false;
+        }
+    }
+
+  if (argc == 2 || argc == 3) {
+      std::string a(argv[1]);
+      if (a == "-") {
+          output.push_back(&std::cout);
+        }
+      else {
+          ofstr1.open(a);
+          output.push_back(&ofstr1);
+        }
+    }
+
+  if (argc == 3) {
+      std::string b(argv[2]);
+      if (b == "-") {
+          output.push_back(&std::cout);
+        }
+      else {
+          ofstr2.open(b);
+          output.push_back(&ofstr2);
+        }
+    }
+
+  if (output.empty()) output.push_back(&std::cout);
+
+  return true;
+}
+
 // #######################################################################
 
 int main(int argc, char* argv[])
 {
-  std::ofstream ofstr("../gen-test/pokus-2.gkf");
-  output.push_back(&std::cout);
-  output.push_back(&ofstr);
+  if (!open(argc, argv)) return 1;
 
   for (auto ostr : output)
     {
