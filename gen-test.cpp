@@ -290,6 +290,7 @@ void coordinates(int from)
   for (int i=0; i<=random_index(3); i++)
     {
       int k = random_index(3);
+      bool first = true;
       for (auto ostr : output)
         {
           auto& cout = *ostr;
@@ -298,22 +299,23 @@ void coordinates(int from)
           switch (k)
             {
             case 0:
-              dim += 3;
+              if (first) dim += 3;
               cout << " x='" << Point[p[i]].x << "'";
               cout << " y='" << Point[p[i]].y << "'";
               cout << " z='" << Point[p[i]].z << "'";
               break;
             case 1:
-              dim += 2;
+              if (first) dim += 2;
               cout << " x='" << Point[p[i]].x << "'";
               cout << " y='" << Point[p[i]].y << "'";
               break;
             case 2:
-              dim += 1;
+              if (first) dim += 1;
               cout << " z='" << Point[p[i]].z << "'";
               break;
             };
           cout << " />\n";
+          first = false;
         }
     }
 

@@ -13,7 +13,7 @@ while (true)
 do
     let i=i+1
     echo -n "$i "
-    build/gen-test > ttt-$i.gkf
+    ./gen-test > ttt-$i.gkf
 
     if ! ./gama-local ttt-$i.gkf --text ttt-$i.txt --algorithm svd ;
     then
