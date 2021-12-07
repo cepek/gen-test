@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm -f ttt-* test-*
+rm -f ttt-* test-* gen3-*-*.*

@@ -1,3 +1,8 @@
+/* cout.precision(n+PREC) sets maximum output precision for double
+ * in attempt to minimize rounding errors
+ */
+const int PREC = 16;
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -78,7 +83,7 @@ struct Dh
 ostream& operator<<(ostream& out, Dh dh)
 {
   auto p = out.precision();
-  out.precision(3);
+  out.precision(3+PREC);
   if (dh.from != 0) out << " from_dh='" << dh.from << "'";
   if( dh.to   != 0) out << " to_dh='"   << dh.to   << "'";
   out.precision(p);
@@ -126,7 +131,7 @@ void dh(int from)
   for (auto ostr : output)
     {
       auto& cout = *ostr;
-      cout.precision(3);
+      cout.precision(3+PREC);
       cout << "<dh from='" << from << "' to='" << to << "'"
            << " val='" << Point[to].z - Point[from].z << "'"
            << " stdev='2.0' />\n";
@@ -139,7 +144,7 @@ void dist(int from)
   for (auto ostr : output)
     {
       auto& cout = *ostr;
-      cout.precision(4);
+      cout.precision(4+PREC);
       double dx = Point[to].x - Point[from].x;
       double dy = Point[to].y - Point[from].y;
       double d  = sqrt(dx*dx + dy*dy);
@@ -155,13 +160,15 @@ void sdist(int from)
   int to = target(from);
   double dx = Point[to].x - Point[from].x;
   double dy = Point[to].y - Point[from].y;
-  double dz = Point[to].z - Point[from].z + dh.diff();
+  double dz = Point[to].z - Point[from].z;
+  double D  = sqrt(dx*dx + dy*dy + dz*dz);
+  dz += dh.diff();
   double d  = sqrt(dx*dx + dy*dy + dz*dz);
   bool first=true;
   for (auto ostr : output)
     {
       auto& cout = *ostr;
-      cout.precision(4);
+      cout.precision(4+PREC);
       if (first) {
           cout << "<s-distance from='" << from << "' to='" << to << "'"
                << " val='" << d << "'" << dh << " stdev='5.0' />\n";
@@ -169,7 +176,7 @@ void sdist(int from)
         }
       else {
           cout << "<s-distance from='" << from << "' to='" << to << "'"
-               << " val='" << d << "'" << dh << " stdev='5.0' />\n";
+               << " val='" << D << "' stdev='5.0' />\n";
         }
     }
 }
@@ -187,7 +194,7 @@ void dir(int from)
       for (auto ostr : output)
         {
           auto& cout = *ostr;
-          cout.precision(4);
+          cout.precision(4+PREC);
           cout << "<direction to='" << to << "'"
                << " val='" << s << "' stdev='6.0' />\n";
         }
@@ -199,23 +206,27 @@ void zen(int from)
   Dh dh;
 
   int   to;
-  double dx, dy, dz, s;
+  double dx, dy, dz, s, dZ, S;
   do
     {
       to = target(from);
-      cout.precision(4);
+      cout.precision(4+PREC);
       dx = Point[to].x - Point[from].x;
       dy = Point[to].y - Point[from].y;
       dz = Point[to].z - Point[from].z + dh.diff();
       s  = sqrt(dx*dx + dy*dy + dz*dz);
+
+      dZ = Point[to].z - Point[from].z;
+      S  = sqrt(dx*dx + dy*dy + dZ*dZ);
     }
-  while(s == 0);
-  double z  = acos(dz/s)/M_PI*200;
+  while(s < 1);  // less than 1m
+  double z = acos(dz/s)/M_PI*200;
+  double Z = acos(dZ/S)/M_PI*200;
   bool first=true;
   for (auto ostr : output)
     {
       auto& cout = *ostr;
-      cout.precision(4);
+      cout.precision(4+PREC);
 
       if (first) {
           cout << "<z-angle from='" << from << "' to='" << to << "'"
@@ -224,7 +235,7 @@ void zen(int from)
         }
       else {
           cout << "<z-angle from='" << from << "' to='" << to << "'"
-               << " val='" << z << "'" << dh << " stdev='7.0' />\n";
+               << " val='" << Z << "' stdev='7.0' />\n";
         }
     }
 }
@@ -266,7 +277,7 @@ void heights(int from)
 
 void coordinates(int from)
 {
-  cout.precision(3);
+  cout.precision(3+PREC);
   int p[] = {0, 0, 0};
 
   int test=0;
@@ -294,7 +305,7 @@ void coordinates(int from)
       for (auto ostr : output)
         {
           auto& cout = *ostr;
-          cout.precision(3);
+          cout.precision(3+PREC);
           cout << "<point id='" << p[i] << "'";
           switch (k)
             {
@@ -337,7 +348,7 @@ void coordinates(int from)
 
 void vectors(int from)
 {
-  cout.precision(3);
+  cout.precision(3+PREC);
   int p[] = {0, 0, 0};
 
   int test=0;
@@ -365,7 +376,7 @@ void vectors(int from)
       for (auto ostr : output)
         {
           auto& cout = *ostr;
-          cout.precision(3);
+          cout.precision(3+PREC);
           cout << "<vec from='" << p[i] << "' to='" << to << "'"
                << " dx='" << Point[to].x - Point[p[i]].x << "'"
                << " dy='" << Point[to].y - Point[p[i]].y << "'"
@@ -462,7 +473,7 @@ int main(int argc, char* argv[])
            << "<network>\n\n"
 
            << "<description>\n"
-           << "gen-test 2.99\n"
+           << "gen-test 3.00\n"
            << "</description>\n\n"
 
            << "<points-observations>\n\n";
@@ -474,7 +485,7 @@ int main(int argc, char* argv[])
       for (auto ostr : output)
         {
           auto& cout = *ostr;
-          cout.precision(2);
+          cout.precision(2+PREC);
           cout << "<point id='" << i << "'"
                << " x='" << Point[i].x << "'"
                << " y='" << Point[i].y << "'"

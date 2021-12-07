@@ -1,9 +1,11 @@
 gen-test
 build
 gama-local
+check_xml_xml
 *~
 test-*
 ttt-*
+gen3-*
 *.gkf
 *.txt
 CMakeLists.txt.*
