@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
            << "<network>\n\n"
 
            << "<description>\n"
-           << "gen-test 3.00\n"
+           << "gen-test 2.99\n"
            << "</description>\n\n"
 
            << "<points-observations>\n\n";

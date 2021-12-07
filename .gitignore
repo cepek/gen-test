@@ -1,5 +1,10 @@
+gen-test
 build
 gama-local
-test-* ttt-*
+*~
+test-*
+ttt-*
+*.gkf
+*.txt
 CMakeLists.txt.*
 .vscode
