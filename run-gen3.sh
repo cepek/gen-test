@@ -1,10 +1,15 @@
 #!/bin/bash
 
+DAT=`date -I`
+rm -rf $DAT
+mkdir  $DAT
+
 ALG=svd
+GEN=$DAT/gen3
 
 ulimit -t 3
 
-rm -f ttt* test-* gen3-* tst3-*
+# rm -f ttt* test-* gen3-* tst3-*
 
 if [ ! -f ./gama-local ]; then
     echo "Symlink ./gama-local does not exists ..."
@@ -14,45 +19,48 @@ fi
 while (true)
 do
     let i=i+1
-    # echo -n "$i "
-    ./gen-test gen3-$i-a.gkf gen3-$i-b.gkf
-
-    if ! ./gama-local gen3-$i-a.gkf --xml gen3-$i-a.xml --text gen3-$i-a.txt \
-            --export gen3-$i-c.gkf --algorithm $ALG ;
-    then
-        if ! grep min_subset_x                gen3-$i-a.gkf &&
-	   ! grep "No points available"       gen3-$i-a.gkf &&
-	   ! grep "No observations available" gen3-$i-a.gkf ;
-        then
-            # echo "   " exception
-            cp gen3-$i-a.gkf tst3-$i-a.gkf
-            # cp gen3-$i.txt tst3-$i.txt
-        fi;
-    fi
-    if ! ./gama-local gen3-$i-b.gkf --xml gen3-$i-b.xml --text gen3-$i-b.txt \
-	 --algorithm $ALG;
-    then
-        if ! grep min_subset_x                gen3-$i-b.gkf &&
-	   ! grep "No points available"       gen3-$i-b.gkf &&
-	   ! grep "No observations available" gen3-$i-b.gkf ;
-        then
-            # echo "   " exception
-            cp gen3-$i-b.gkf tst3-$i-b.gkf
-            # cp gen3-$i.txt tst3-$i.txt
-        fi;
-    fi
-
-    # diff gen3-1-a.gkf gen3-1-b.gkf
-
     echo
-    ./check_xml_xml "xml diff gen3-$i-a/b.xml ... exact corrections b" \
-		    gen3-$i-a.xml gen3-$i-b.xml
+    ./gen-test $GEN-$i-a.gkf $GEN-$i-b.gkf
 
-    ./gama-local gen3-$i-c.gkf --xml gen3-$i-c.xml --text gen3-$i-c.txt \
-		 --algorithm $ALG ;
+    ./gama-local $GEN-$i-a.gkf --xml $GEN-$i-a.xml --text $GEN-$i-a.txt \
+		 --export $GEN-$i-c.gkf --algorithm $ALG ;
+    A=$?
 
-    ./check_xml_xml "xml diff gen3-$i-a/c.xml ... exported data from a" \
-		    gen3-$i-b.xml gen3-$i-c.xml
+    ./gama-local $GEN-$i-b.gkf --xml $GEN-$i-b.xml --text $GEN-$i-b.txt \
+	 --algorithm gso
+    B=$?
+
+    ./check_xml_xml "xml diff $GEN-$i-a/b.xml ... exact corr. b" \
+		       $GEN-$i-a.xml $GEN-$i-b.xml
+    D=$?
+
+    ./gama-local $GEN-$i-c.gkf --xml $GEN-$i-c.xml --text $GEN-$i-c.txt \
+		    --algorithm $ALG
+    C=$?
+
+    ./check_xml_xml "xml diff $GEN-$i-b/c.xml ... export from a" \
+		       $GEN-$i-b.xml $GEN-$i-c.xml
+    E=$?
+
+    if [ $A -ne 0 ] || \
+       [ $B -ne 0 ] || \
+       [ $C -ne 0 ] || \
+       [ $D -ne 0 ] || \
+       [ $E -ne 0 ]
+    then
+	echo
+	echo gen-test a.gkf b.gkf
+	echo
+	echo A : gama-local a.gkf --xml a.xml --text a.txt \
+	     --export c.gkf --algorithm $ALG
+	echo B : gama-local b.gkf --xml b.xml --text b.txt --algorithm gso
+	echo C : gama-local c.gkf --xml c.xml --text c.txt --algorithm $ALG
+	echo D : check_xml_xml "diff a/b exact correction" a.xml b.xml
+	echo E : check_xml_xml "diff b/c export from a   " b.xml c.xml
+	echo
+	echo tests A B C D E : $A $B $C $D $E
+    	exit 1
+    fi
 
     if [ $i -ge 100 ] ;
     then
