@@ -15,31 +15,36 @@ if [ ! -f ./gama-local ]; then
     echo "Symlink ./gama-local does not exists ..."
     exit 1
 fi
+if [ ! -f ./check_xml_xml ]; then
+    echo "Symlink ./check_xml_xml does not exists ..."
+    exit 1
+fi
 
 while (true)
 do
     let i=i+1
+    I=$( printf '%03d' $i )
     echo
-    ./gen-test $GEN-$i-a.gkf $GEN-$i-b.gkf
+    ./gen-test $GEN-$I-a.gkf $GEN-$I-b.gkf
 
-    ./gama-local $GEN-$i-a.gkf --xml $GEN-$i-a.xml --text $GEN-$i-a.txt \
-		 --export $GEN-$i-c.gkf --algorithm $ALG ;
+    ./gama-local $GEN-$I-a.gkf --xml $GEN-$I-a.xml --text $GEN-$I-a.txt \
+		 --export $GEN-$I-c.gkf --algorithm $ALG ;
     A=$?
 
-    ./gama-local $GEN-$i-b.gkf --xml $GEN-$i-b.xml --text $GEN-$i-b.txt \
+    ./gama-local $GEN-$I-b.gkf --xml $GEN-$I-b.xml --text $GEN-$I-b.txt \
 	 --algorithm gso
     B=$?
 
-    ./check_xml_xml "xml diff $GEN-$i-a/b.xml ... exact corr. b" \
-		       $GEN-$i-a.xml $GEN-$i-b.xml
+    ./check_xml_xml "xml diff $GEN-$I-a/b.xml ... exact corr. b" \
+		       $GEN-$I-a.xml $GEN-$I-b.xml
     D=$?
 
-    ./gama-local $GEN-$i-c.gkf --xml $GEN-$i-c.xml --text $GEN-$i-c.txt \
+    ./gama-local $GEN-$I-c.gkf --xml $GEN-$I-c.xml --text $GEN-$I-c.txt \
 		    --algorithm $ALG
     C=$?
 
-    ./check_xml_xml "xml diff $GEN-$i-b/c.xml ... export from a" \
-		       $GEN-$i-b.xml $GEN-$i-c.xml
+    ./check_xml_xml "xml diff $GEN-$I-b/c.xml ... export from a" \
+		       $GEN-$I-b.xml $GEN-$I-c.xml
     E=$?
 
     if [ $A -ne 0 ] || \
@@ -62,7 +67,7 @@ do
     	exit 1
     fi
 
-    if [ $i -ge 100 ] ;
+    if [ $i -ge 1000 ] ;
     then
         echo
         exit 0
